@@ -1,2 +1,2 @@
-# epistasis
+# Epistasis
 Epistasis Analysis
