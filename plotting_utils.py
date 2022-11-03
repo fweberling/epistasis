@@ -39,6 +39,9 @@ def plot_obs_fitness_heatmap(reference_seq, double_mut_seq_list, obs_fitness_lis
 
     plt.imshow(obs_fitness_heatmap, cmap='viridis', interpolation='nearest')
     plt.colorbar()
+    plt.title("Fitness Heatmap")
+    plt.xlabel("Mutated Amino Acid Position")
+    plt.ylabel("Mutated Amino Acid Position")
     plt.show()
 
 

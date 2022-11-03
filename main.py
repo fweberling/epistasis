@@ -48,5 +48,5 @@ double_mut_epistasis_graph_A = nx.adjacency_matrix(double_mut_epistasis_graph).t
 plt.imshow(double_mut_epistasis_graph_A)
 plt.show()
 
-# Epistatic Heatmap
+# Fitness Heatmap
 plot_obs_fitness_heatmap(reference, sequence_double_list, W_observed_list)
