@@ -397,3 +397,31 @@ def epistasis_graph(double_mut_pos_list):
     graph.add_edges_from(edges_list)
 
     return graph
+
+
+def epistatic_triangles(higher_order_mut_positions):
+    """
+    Given a list of higher order mutation positions, all epistatic trianglular structures are exptracted as a list
+    :param higher_order_mut_positions: list of higher order mutation positions
+    :return: epistatic_triangle_list: returns a list of epistatic triangles
+    """
+    # Determine all epistatic triangles for all AA positions
+    AA_pos_list = np.unique(higher_order_mut_positions)
+
+    epistatic_triangle_list = []
+
+    for AA_pos in range(len(AA_pos_list)):
+        epistatic_triangle = epistatic_interaction_double_mutation(higher_order_mut_positions, AA_pos_list[AA_pos])
+        if len(epistatic_triangle) > 0:
+            # Append list of triangles with the new triangles one by one
+            if any(isinstance(j, list) for j in epistatic_triangle):
+                for triangle in range(0, len(epistatic_triangle)):
+                    epistatic_triangle_list.append(sorted(epistatic_triangle[triangle]))
+            # Append list of triangles with the one new triangle
+            else:
+                epistatic_triangle_list.append(sorted(epistatic_triangle))
+
+    # List of epistatic triangles
+    epistatic_triangle_list = np.unique(np.array(epistatic_triangle_list), axis=0).tolist()
+
+    return epistatic_triangle_list
