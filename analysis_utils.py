@@ -184,7 +184,7 @@ def preprocessing(data_frame, num_mut, reference_seq):
     return preprocessed_data
 
 
-def double_mut_pos(epistatic_score_list, obs_fitness_list, exp_fitness_list, obs_fitness_std_list,
+def double_mut_pos(epistatic_score_list, obs_fitness_list, exp_fitness_std_list, obs_fitness_std_list,
                    double_mut_seq_list, reference_seq):
     """
     Creates a list of double mutation positions based on a positive epistatic effect and combinability (positive
@@ -192,7 +192,7 @@ def double_mut_pos(epistatic_score_list, obs_fitness_list, exp_fitness_list, obs
 
     :param epistatic_score_list: list of expected fitness scores for each double mutant
     :param obs_fitness_list: list of observed fitness scores for each double mutant
-    :param exp_fitness_list: list of standard deviations of expected fitness score for list of double mutations
+    :param exp_fitness_std_list: list of standard deviations of expected fitness score for list of double mutations
     :param obs_fitness_std_list: list of standard deviations of observed fitness score for list of double mutations
     :param double_mut_seq_list: list of sequences containing double mutations (with sufficient information)
     :param reference_seq: reference sequence of protein
@@ -201,22 +201,28 @@ def double_mut_pos(epistatic_score_list, obs_fitness_list, exp_fitness_list, obs
 
     candidates_tria_1 = []
     candidates_tria_2 = []
+    mut_aa_list_1 = []
+    mut_aa_list_2 = []
 
     # Create lists of double mutation positions dependent on positiveness and combinability
     for seq in range(len(double_mut_seq_list)):
         # Ensure positive fitness effect and combinability
-        if obs_fitness_list[seq] > obs_fitness_std_list[seq] and epistatic_score_list[seq] > - exp_fitness_list[seq]:
+        if obs_fitness_list[seq] > obs_fitness_std_list[seq] and epistatic_score_list[seq] > - exp_fitness_std_list[seq]:
             sequence = double_mut_seq_list[seq]
-            _, mut_pos, _ = call_aa_simple(reference_seq, sequence)
+            _, mut_pos, mut_aa = call_aa_simple(reference_seq, sequence)
 
             candidates_tria_1.append(mut_pos[0])
             candidates_tria_2.append(mut_pos[1])
+            mut_aa_list_1.append(mut_aa[0])
+            mut_aa_list_2.append(mut_aa[1])
 
     # Combine two lists into combined list of double mutation positions
     candidates_tria_1_np = np.array(candidates_tria_1)
     candidates_tria_2_np = np.array(candidates_tria_2)
+    mut_aa_list_1_np = np.array(mut_aa_list_1)
+    mut_aa_list_2_np = np.array(mut_aa_list_2)
 
-    pos_comb_double_mut_list = np.stack((candidates_tria_1_np, candidates_tria_2_np), axis=1).tolist()
+    pos_comb_double_mut_list = np.stack((candidates_tria_1_np, candidates_tria_2_np, mut_aa_list_1_np, mut_aa_list_2_np), axis=1)#.tolist()
 
     return pos_comb_double_mut_list
 

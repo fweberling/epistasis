@@ -2,7 +2,8 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
 from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles
-from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution
+from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution
+import numpy as np
 
 # Specify order of mutations to be analysed
 num_mut = 2
@@ -26,8 +27,10 @@ W_expected_std_list = preprocessed_data["Higher Order Mutations"]["Expected std 
 epistatic_score_list = preprocessed_data["Higher Order Mutations"]["Epistatic score"]
 
 # Create a list of positive and combinable positions of double mutations
-pos_comb_double_mut_list = double_mut_pos(epistatic_score_list, W_observed_list, W_expected_std_list,
-                                          W_observed_std_list, sequence_double_list, reference)
+pos_comb_double_mut_list_full = double_mut_pos(epistatic_score_list, W_observed_list, W_expected_std_list,
+                                               W_observed_std_list, sequence_double_list, reference)
+pos_comb_double_mut_list = pos_comb_double_mut_list_full[:, :2].astype(int)
+pos_comb_double_mut_aa_list = pos_comb_double_mut_list_full[:, 2:]
 
 # Determine all epistatic triangles for all AA positions
 epistatic_triangle_list = epistatic_triangles(pos_comb_double_mut_list)
@@ -42,6 +45,10 @@ plt.show()
 
 # Node degree analysis (node, degree) in descending order
 plot_node_degree_distribution(double_mut_epistasis_graph)
+
+# Node degree + amino acid distribution
+#plot_node_degree_aa_distribution(double_mut_epistasis_graph)
+
 
 # Plot adjacency matrix
 double_mut_epistasis_graph_A = nx.adjacency_matrix(double_mut_epistasis_graph).todense()

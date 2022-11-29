@@ -54,10 +54,37 @@ def plot_node_degree_distribution(epistasis_graph):
     :return: None
     """
 
-    node_degree_list = list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True)))
+    node_degree_list = np.array(list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True))))
 
     # Plot node degree list as bar chart
-    plt.bar(np.array(node_degree_list)[:, 0], np.array(node_degree_list)[:, 1])
+    plt.figure(figsize=[15, 3])
+    plt.bar(node_degree_list[:, 0], node_degree_list[:, 1], color="tomato", linewidth=0, alpha=0.8)
+    plt.xlim(1, 291)
+    for a in range(10, 290, 10):
+        plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
+    #plt.legend(loc="lower right")
+    plt.locator_params(axis="x", nbins=29)
+    plt.locator_params(axis="y", nbins=10)
+    plt.title("Node Degree Distribution")
+    plt.xlabel("Amino Acid Position")
+    plt.ylabel("Number of Epistatic Interactions")
+    plt.show()
+
+
+def plot_node_degree_aa_distribution(epistasis_graph):
+    """
+    Given an epistasis graph, plot the node degree distribution (# epistatic interaction per amino acid position) for
+    each node (amino acid position)
+
+    :param epistasis_graph: Networkx graph
+    :return: None
+    """
+
+    node_degree_list = np.array(list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True))))
+
+    # Plot node degree list as bar chart
+    plt.figure(figsize=[15, 3])
+    plt.bar(node_degree_list[:, 0], node_degree_list[:, 1], color="tomato", linewidth=0, alpha=0.8)
     plt.title("Node Degree Distribution")
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Epistatic Interactions")
