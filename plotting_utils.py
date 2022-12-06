@@ -1,4 +1,6 @@
 # Plotting functions for project
+import random
+
 import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
@@ -62,7 +64,7 @@ def plot_node_degree_distribution(epistasis_graph):
     plt.xlim(1, 291)
     for a in range(10, 290, 10):
         plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
-    #plt.legend(loc="lower right")
+    # plt.legend(loc="lower right")
     plt.locator_params(axis="x", nbins=29)
     plt.locator_params(axis="y", nbins=10)
     plt.title("Node Degree Distribution")
@@ -71,21 +73,53 @@ def plot_node_degree_distribution(epistasis_graph):
     plt.show()
 
 
-def plot_node_degree_aa_distribution(epistasis_graph):
+def plot_node_degree_aa_distribution(mut_aa_list):
     """
-    Given an epistasis graph, plot the node degree distribution (# epistatic interaction per amino acid position) for
-    each node (amino acid position)
+    Given a n x 2 dimensional numpy array of mutated amino acids, plot the node degree and amino acid distribution as
+    bar chart and return a dictionary of amino acids per positions
 
-    :param epistasis_graph: Networkx graph
-    :return: None
+    :param mut_aa_list:
+    :return: pos_per_aa_dict
     """
+    # Return the unique rows
+    unique_pos, unique_pos_counts = np.unique(mut_aa_list, return_counts=True, axis=0)
 
-    node_degree_list = np.array(list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True))))
+    # check for present AA in all data
+    unique_aa = np.unique(mut_aa_list[:, 1]).tolist()
 
-    # Plot node degree list as bar chart
+    # Create dict for each AA, for each dict the counts
+    pos_per_aa_dict = dict.fromkeys(unique_aa)
+
+    # Fill each entry with a 291 long list containing the positional counts
+
+    for sel_aa in unique_aa:
+        aa_count_list = np.zeros(292)
+        for pos in range(0, len(unique_pos)):
+            if unique_pos[pos, 1] == sel_aa:
+                aa_count_list[unique_pos[pos, 0].astype(int)] = unique_pos_counts[pos]
+        pos_per_aa_dict[sel_aa] = aa_count_list
+
+    x = np.arange(0, 292)
     plt.figure(figsize=[15, 3])
-    plt.bar(node_degree_list[:, 0], node_degree_list[:, 1], color="tomato", linewidth=0, alpha=0.8)
+    plt.set_cmap('viridis')
+    stored_value = np.zeros(292)
+    idx = 0
+    cmap = plt.get_cmap('nipy_spectral')
+    slicedCM = cmap(np.linspace(0, 1, len(unique_aa)))
+    for a in range(10, 290, 10):
+        plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
+    for sp_aa in unique_aa:
+        plt.bar(x, pos_per_aa_dict[sp_aa], bottom=stored_value, color=slicedCM[idx],   label=unique_aa[idx])
+        stored_value = stored_value + pos_per_aa_dict[sp_aa]
+        idx = idx + 1
+    plt.xlim(1, 291)
+    plt.legend(loc="lower right")
+    plt.locator_params(axis="x", nbins=29)
+    plt.locator_params(axis="y", nbins=10)
     plt.title("Node Degree Distribution")
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Epistatic Interactions")
+    plt.legend()
     plt.show()
+
+    return pos_per_aa_dict
