@@ -1,4 +1,5 @@
 # Plotting functions for project
+import itertools
 import random
 
 import numpy as np
@@ -101,7 +102,6 @@ def plot_node_degree_aa_distribution(mut_aa_list):
 
     x = np.arange(0, 292)
     plt.figure(figsize=[15, 3])
-    plt.set_cmap('viridis')
     stored_value = np.zeros(292)
     idx = 0
     cmap = plt.get_cmap('nipy_spectral')
@@ -109,7 +109,7 @@ def plot_node_degree_aa_distribution(mut_aa_list):
     for a in range(10, 290, 10):
         plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
     for sp_aa in unique_aa:
-        plt.bar(x, pos_per_aa_dict[sp_aa], bottom=stored_value, color=slicedCM[idx],   label=unique_aa[idx])
+        plt.bar(x, pos_per_aa_dict[sp_aa], bottom=stored_value, color=slicedCM[idx], label=unique_aa[idx])
         stored_value = stored_value + pos_per_aa_dict[sp_aa]
         idx = idx + 1
     plt.xlim(1, 291)
@@ -123,3 +123,40 @@ def plot_node_degree_aa_distribution(mut_aa_list):
     plt.show()
 
     return pos_per_aa_dict
+
+
+def plot_mutation_distribution(sequence_list, reference):
+    """
+    Takes the full list of all mutants and plots the mutation distribution (number of mutations per position)
+
+    :param sequence_list: list of all strings of mutants
+    :param reference: string of amino acids of the reference protein
+    :return: None
+    """
+    full_mut_pos_list = []
+    full_mut_aa_list = []
+
+    # Create lists of double mutation positions dependent on positiveness and combinability
+    for seq in range(len(sequence_list)):
+        sequence = sequence_list[seq]
+        _, mut_pos, mut_aa = call_aa_simple(reference, sequence)
+
+        full_mut_pos_list.append(mut_pos)
+        full_mut_aa_list.append(mut_aa)
+
+    full_mut_pos_dist_list = list(itertools.chain.from_iterable(full_mut_pos_list))
+
+    unique_dist_pos, unique_dist_count = np.unique(np.array(full_mut_pos_dist_list), return_counts=True)
+
+    plt.figure(figsize=[15, 3])
+    for a in range(10, 290, 10):
+        plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
+    plt.bar(np.array(unique_dist_pos), np.array(unique_dist_count))
+    plt.xlim(1, 291)
+    plt.locator_params(axis="x", nbins=29)
+    plt.locator_params(axis="y", nbins=10)
+    plt.title("Mutation Distribution")
+    plt.xlabel("Amino Acid Position")
+    plt.ylabel("Number of Mutations")
+    plt.legend()
+    plt.show()
