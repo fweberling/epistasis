@@ -61,7 +61,7 @@ plot_mutation_distribution(mut_3_5_sequence_list, reference)
 # Combine two lists into combined list of double mutation positions
 comb_pos_mut_pos_list, comb_pos_mut_aa_list = comb_pos_mut(full_mut_epistatic_score_list, full_mut_W_observed_list,
                                                            full_mut_W_expected_list, full_mut_W_observed_std_list,
-                                                           full_mut_sequence_list, reference, 1, 1)
+                                                           full_mut_sequence_list, reference, 1, -1)
 # Unpack list of into pairs
 pos_comb_mut_edges = []
 pos_comb_mut_aa = []
@@ -82,6 +82,13 @@ higher_order_mut_epistasis_graph = epistasis_graph(pos_comb_mut_edges)
 # Plot epistasis double_mut_epistasis_graph
 nx.draw(higher_order_mut_epistasis_graph, with_labels=True, font_weight='bold')
 plt.show()
+
+# Find largest cliques in largest component of graph
+largest_cc = max(nx.connected_components(higher_order_mut_epistasis_graph), key=len)
+higher_order_mut_epistasis_subgraph = higher_order_mut_epistasis_graph.subgraph(largest_cc)
+nx.draw(higher_order_mut_epistasis_subgraph, with_labels=True, font_weight='bold')
+largest_cliques = sorted(nx.find_cliques(higher_order_mut_epistasis_subgraph), key=len, reverse=True)
+print(largest_cliques)
 
 # Node degree analysis (node, degree) in descending order
 plot_node_degree_distribution(higher_order_mut_epistasis_graph)
