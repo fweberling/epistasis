@@ -86,6 +86,7 @@ plt.show()
 # Node degree analysis (node, degree) in descending order
 plot_node_degree_distribution(higher_order_mut_epistasis_graph)
 
+plot_node_degree_distribution(higher_order_mut_epistasis_graph, frequency=True, sequence_list=full_mut_sequence_list, reference=reference)
 # Node degree and amino acid distribution
 pos_comb_higher_mut_pos = np.concatenate(
     (np.array(pos_comb_mut_edges)[:, 0], np.array(pos_comb_mut_edges)[:, 1].astype(int)), axis=0)

@@ -48,20 +48,47 @@ def plot_obs_fitness_heatmap(reference_seq, double_mut_seq_list, obs_fitness_lis
     plt.show()
 
 
-def plot_node_degree_distribution(epistasis_graph):
+def plot_node_degree_distribution(epistasis_graph, frequency=False, sequence_list=[], reference=[]):
     """
     Given an epistasis graph, plot the node degree distribution (# epistatic interaction per amino acid position) for
     each node (amino acid position)
 
+    :param reference: string of amino acids of the reference sequence
+    :param sequence_list: list of mutant sequences
+    :param frequency: Node degree distribution by frequency instead of counts
     :param epistasis_graph: Networkx graph
     :return: None
     """
 
-    node_degree_list = np.array(list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True))))
+    node_degree_list = np.array(list(map(list, sorted(epistasis_graph.degree, key=lambda x: x[1], reverse=True))),
+                                dtype=float)
+
+    if frequency:
+        full_mut_pos_list = []
+        full_mut_aa_list = []
+
+        # Create lists of double mutation positions dependent on positiveness and combinability
+        for seq in range(len(sequence_list)):
+            sequence = sequence_list[seq]
+            _, mut_pos, mut_aa = call_aa_simple(reference, sequence)
+
+            full_mut_pos_list.append(mut_pos)
+            full_mut_aa_list.append(mut_aa)
+
+        full_mut_pos_dist_list = list(itertools.chain.from_iterable(full_mut_pos_list))
+
+        unique_dist_pos, unique_dist_count = np.unique(np.array(full_mut_pos_dist_list), return_counts=True)
+
+        for pos_node_idx in range(0, len(node_degree_list)):
+            for pos in range(0, len(unique_dist_pos)):
+                if unique_dist_pos[pos] == node_degree_list[pos_node_idx, 0]:
+                    node_degree_list[pos_node_idx, 1] = node_degree_list[pos_node_idx, 1] / unique_dist_count[pos]
+
+
 
     # Plot node degree list as bar chart
     plt.figure(figsize=[15, 3])
-    plt.bar(node_degree_list[:, 0], node_degree_list[:, 1], color="tomato", linewidth=0, alpha=0.8)
+    plt.bar(node_degree_list[:, 0].astype(int), node_degree_list[:, 1], color="tomato", linewidth=0, alpha=0.8)
     plt.xlim(1, 291)
     for a in range(10, 290, 10):
         plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
@@ -158,5 +185,4 @@ def plot_mutation_distribution(sequence_list, reference):
     plt.title("Mutation Distribution")
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Mutations")
-    plt.legend()
     plt.show()
