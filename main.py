@@ -1,10 +1,13 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
-from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, call_aa_simple
-from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution, plot_mutation_distribution
+from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, \
+    call_aa_simple
+from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution, \
+    plot_mutation_distribution, plot_epistasis_model
 import numpy as np
 import itertools
+import scipy as sp
 
 # Upload input files into panda data frame
 # data_frame = pd.read_csv('CPA_merge_filtered.csv')
@@ -54,14 +57,38 @@ plot_mutation_distribution(full_mut_sequence_list, reference)
 
 # Plot mutation distribution for mutations 3 - 5
 mut_3_5_sequence_list = []
+mut_3_5_W_observed_list = []
+mut_3_5_W_expected_list = []
+mut_3_5_epistatic_score_list = []
+
 for mut_num_i in range(3, num_mut + 1):
     mut_3_5_sequence_list = mut_3_5_sequence_list + locals()["mut_" + str(mut_num_i) + "_sequence_list"]
+    mut_3_5_W_observed_list = mut_3_5_W_observed_list + locals()["mut_" + str(mut_num_i) + "_W_observed_list"]
+    mut_3_5_W_expected_list = mut_3_5_W_expected_list + locals()["mut_" + str(mut_num_i) + "_W_expected_list"]
+    mut_3_5_epistatic_score_list = mut_3_5_epistatic_score_list + locals()["mut_" + str(mut_num_i) +
+                                                                           "_epistatic_score_list"]
+
 plot_mutation_distribution(mut_3_5_sequence_list, reference)
 
 # Combine two lists into combined list of double mutation positions
 comb_pos_mut_pos_list, comb_pos_mut_aa_list = comb_pos_mut(full_mut_epistatic_score_list, full_mut_W_observed_list,
                                                            full_mut_W_expected_list, full_mut_W_observed_std_list,
                                                            full_mut_sequence_list, reference, 1, -1)
+# Plot epistasis model for double mutations
+r_d_s, p_d_s = sp.stats.pearsonr(mut_2_W_expected_list, mut_2_W_observed_list)
+print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
+plot_epistasis_model(mut_2_W_expected_list, mut_2_W_observed_list, mut_2_epistatic_score_list)
+
+# Plot epistasis model for mutations 3 - 5
+r_d_s, p_d_s = sp.stats.pearsonr(mut_3_5_W_expected_list, mut_3_5_W_observed_list)
+print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
+plot_epistasis_model(mut_3_5_W_expected_list, mut_3_5_W_observed_list, mut_3_5_epistatic_score_list)
+
+# Plot epistasis model for mutations 2 - 5
+r_d_s, p_d_s = sp.stats.pearsonr(full_mut_W_expected_list, full_mut_W_observed_list)
+print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
+plot_epistasis_model(full_mut_W_expected_list, full_mut_W_observed_list, full_mut_epistatic_score_list)
+
 # Unpack list of into pairs
 pos_comb_mut_edges = []
 pos_comb_mut_aa = []

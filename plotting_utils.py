@@ -186,3 +186,33 @@ def plot_mutation_distribution(sequence_list, reference):
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Mutations")
     plt.show()
+
+
+# ln_W_axb_list -> W_expected_list
+# ln_W_a_b_list -> W_observed_list
+# e -> epistatic_score_list
+
+def plot_epistasis_model(W_expected_list, W_observed_list, epistatic_score_list):
+    """
+    Plots the epistasis model for all mutants as scatter plot
+
+    :param W_expected_list: list of expected fitness scores for each mutant
+    :param W_observed_list: list of observed fitness scores for each mutant
+    :param epistatic_score_list: list of epistatic scores for each mutant
+    :return: None
+    """
+
+    plt.figure()  # default figsize 6.4 4.8
+    plt.axhline(0, c="grey", linewidth=1)
+    plt.axvline(0, c="grey", linewidth=1)
+    # plt.plot([-1,1], [0.3, 0.3], c="grey", linewidth=1)
+    # plt.plot([0,0], [0.3, 1], c="grey", linewidth=1)
+    plt.scatter(W_expected_list, W_observed_list, s=10, c=epistatic_score_list, cmap="coolwarm")
+    plt.xlabel("Expected fitness scores")
+    plt.ylabel("Observed fitness scores")
+    # plt.ylim([-0.5,0.9])
+    # plt.xlim([-0.95,0.55])
+    plt.colorbar(ticks=np.arange(-2.5, 2.5, 0.2), label=u'\u03B5');
+    plt.clim(-2.5, 2.5)
+    #plt.savefig("correlation_calculated_double_double_epsilon.pdf", bbox_inches='tight')
+    plt.show()
