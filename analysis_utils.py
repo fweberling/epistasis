@@ -1,5 +1,9 @@
 import numpy as np
 import networkx as nx
+import torch
+import gpytorch
+from sklearn.decomposition import PCA
+from matplotlib import pyplot as plt
 
 
 def call_aa_simple(reference_seq, target_seq):
@@ -245,7 +249,7 @@ def double_mut_pos(epistatic_score_list, obs_fitness_list, exp_fitness_std_list,
     for seq in range(len(double_mut_seq_list)):
         # Ensure positive fitness effect and combinability
         if obs_fitness_list[seq] > sig_std_obs * obs_fitness_std_list[seq] and epistatic_score_list[
-            seq] > - sig_std_exp * exp_fitness_std_list[seq]:
+            seq] > sig_std_exp * exp_fitness_std_list[seq]:
             sequence = double_mut_seq_list[seq]
             _, mut_pos, mut_aa = call_aa_simple(reference_seq, sequence)
 
@@ -444,6 +448,56 @@ def epistasis_graph(double_mut_pos_list):
     return graph
 
 
+def construct_structural_epistasis_graph(double_mutant_edges, filter_threshold, distance_matrix):
+    """
+    Given interaction edges and a distance matrix, construct a structural epistasis graph
+
+    :param double_mutant_edges: list of interactions
+    :param filter_threshold: integer, nodes above this threshold are incoporated in the graph
+    :param distance_matrix: numpy array of min dimer distance matrix
+    :return: structural_epistasis_graph: networkX graph
+    """
+    # Filter elements
+    double_mutant_edges = np.array(double_mutant_edges)
+    unique_values, counts = np.unique(double_mutant_edges, return_counts=True)
+    sorted_indices = np.argsort(counts)
+    unique_values_sorted_by_counts = unique_values[sorted_indices][::-1]
+    counts = np.sort(counts)[::-1]
+
+    filtered_count_indices = np.argwhere(counts > filter_threshold)
+    filtered_values = unique_values_sorted_by_counts[filtered_count_indices]
+
+    # Only keep edges of those highly connected nodes
+    filtered_pos_comb_mut_edges = []
+    for edge_cand_idx in range(0, len(double_mutant_edges)):
+        edge_cand = double_mutant_edges[edge_cand_idx]
+        if np.any(filtered_values == edge_cand[0]) or np.any(filtered_values == edge_cand[1]):
+            filtered_pos_comb_mut_edges.append(edge_cand.tolist())
+
+    # Extract unique nodes
+    filtered_pos_comb_mut_edges = np.array(filtered_pos_comb_mut_edges)
+
+    unique_filtered_nodes = np.unique(filtered_pos_comb_mut_edges)
+
+    # PCA
+    pca = PCA(n_components=2)
+    pca.fit(distance_matrix)
+    Y_red = pca.transform(distance_matrix)
+
+    structural_epistasis_graph = nx.Graph()
+    for node in range(1, 291):
+        if np.any(unique_filtered_nodes == node):
+            structural_epistasis_graph.add_node(node, pos=(Y_red[node - 1, 0], Y_red[node - 1, 1]))
+
+    edges_list = []
+    for pair in filtered_pos_comb_mut_edges:
+        edges_list.append(tuple(pair))
+
+    structural_epistasis_graph.add_edges_from(edges_list)
+
+    return structural_epistasis_graph
+
+
 def epistatic_triangles(higher_order_mut_positions):
     """
     Given a list of higher order mutation positions, all epistatic trianglular structures are exptracted as a list
@@ -470,3 +524,56 @@ def epistatic_triangles(higher_order_mut_positions):
     epistatic_triangle_list = np.unique(np.array(epistatic_triangle_list), axis=0).tolist()
 
     return epistatic_triangle_list
+
+
+def _init_pca(Y, latent_dim):
+    U, S, V = torch.pca_lowrank(Y, q=latent_dim)
+    return torch.nn.Parameter(torch.matmul(Y, V[:, :latent_dim]))
+
+
+class bGPLVM(gpytorch.models.gplvm.bayesian_gplvm.BayesianGPLVM):
+    def __init__(self, n, data_dim, latent_dim, n_inducing, pca=False):
+        self.n = n
+        self.batch_shape = torch.Size([data_dim])
+
+        # Locations Z_{d} corresponding to u_{d}, they can be randomly initialized or
+        # regularly placed with shape (D x n_inducing x latent_dim).
+        self.inducing_inputs = torch.randn(data_dim, n_inducing, latent_dim)
+
+        # Sparse Variational Formulation (inducing variables initialised as randn)
+        q_u = gpytorch.variational.CholeskyVariationalDistribution(n_inducing, batch_shape=self.batch_shape)
+        q_f = gpytorch.variational.VariationalStrategy(self, self.inducing_inputs, q_u, learn_inducing_locations=True)
+
+        # Define prior for X
+        X_prior_mean = torch.zeros(n, latent_dim)  # shape: N x Q
+        prior_x = gpytorch.priors.NormalPrior(X_prior_mean, torch.ones_like(X_prior_mean))
+
+        # Initialise X with PCA or randn
+        if pca == True:
+            X_init = _init_pca(Y, latent_dim)  # Initialise X to PCA
+        else:
+            X_init = torch.nn.Parameter(torch.randn(n, latent_dim))
+
+        # LatentVariable (c)
+        X = gpytorch.models.gplvm.VariationalLatentVariable(n, data_dim, latent_dim, X_init, prior_x)
+
+        # For (a) or (b) change to below:
+        # X = PointLatentVariable(n, latent_dim, X_init)
+        # X = MAPLatentVariable(n, latent_dim, X_init, prior_x)
+
+        super().__init__(X, q_f)
+
+        # Kernel (acting on latent dimensions)
+        self.mean_module = gpytorch.means.ZeroMean(ard_num_dims=latent_dim)
+        self.covar_module = gpytorch.kernels.ScaleKernel(gpytorch.kernels.RBFKernel(ard_num_dims=latent_dim))
+
+    def forward(self, X):
+        mean_x = self.mean_module(X)
+        covar_x = self.covar_module(X)
+        dist = gpytorch.distributions.MultivariateNormal(mean_x, covar_x)
+        return dist
+
+    def _get_batch_idx(self, batch_size):
+        valid_indices = np.arange(self.n)
+        batch_indices = np.random.choice(valid_indices, size=batch_size, replace=False)
+        return np.sort(batch_indices)

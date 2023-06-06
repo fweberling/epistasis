@@ -1,13 +1,18 @@
+import csv
+
+import gpytorch.likelihoods
 import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
 from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, \
-    call_aa_simple
+    call_aa_simple, _init_pca, bGPLVM, construct_structural_epistasis_graph
 from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution, \
     plot_mutation_distribution, plot_epistasis_model
 import numpy as np
 import itertools
 import scipy as sp
+from sklearn.decomposition import PCA
+import torch
 
 # Upload input files into panda data frame
 # data_frame = pd.read_csv('CPA_merge_filtered.csv')
@@ -70,10 +75,7 @@ for mut_num_i in range(3, num_mut + 1):
 
 plot_mutation_distribution(mut_3_5_sequence_list, reference)
 
-# Combine two lists into combined list of double mutation positions
-comb_pos_mut_pos_list, comb_pos_mut_aa_list = comb_pos_mut(full_mut_epistatic_score_list, full_mut_W_observed_list,
-                                                           full_mut_W_expected_list, full_mut_W_observed_std_list,
-                                                           full_mut_sequence_list, reference, 1, -1)
+
 # Plot epistasis model for double mutations
 r_d_s, p_d_s = sp.stats.pearsonr(mut_2_W_expected_list, mut_2_W_observed_list)
 print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
@@ -89,6 +91,11 @@ r_d_s, p_d_s = sp.stats.pearsonr(full_mut_W_expected_list, full_mut_W_observed_l
 print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
 plot_epistasis_model(full_mut_W_expected_list, full_mut_W_observed_list, full_mut_epistatic_score_list)
 
+# Combine two lists into combined list of double mutation positions
+comb_pos_mut_pos_list, comb_pos_mut_aa_list = comb_pos_mut(full_mut_epistatic_score_list, full_mut_W_observed_list,
+                                                           full_mut_W_expected_list, full_mut_W_observed_std_list,
+                                                           full_mut_sequence_list, reference, 1, 1)
+
 # Unpack list of into pairs
 pos_comb_mut_edges = []
 pos_comb_mut_aa = []
@@ -103,19 +110,40 @@ for higher_ord_mut in range(0, len(comb_pos_mut_pos_list)):
             pos_comb_mut_edges.append(higher_order_mut_list[higher_order_mut_list_ele])
             pos_comb_mut_aa.append(higher_order_mut_aa_list[higher_order_mut_list_ele])
 
-# Create epistasis graph for all higher order mutants
+# Epistasis graph for all higher order mutants
 higher_order_mut_epistasis_graph = epistasis_graph(pos_comb_mut_edges)
-
-# Plot epistasis double_mut_epistasis_graph
 nx.draw(higher_order_mut_epistasis_graph, with_labels=True, font_weight='bold')
 plt.show()
+
+# Load distance matrix
+dist_matrix = np.load("min_dimer_distances.npy")
+
+# Structural epistasis graph for all higher order mutants
+structural_epistasis_graph = construct_structural_epistasis_graph(pos_comb_mut_edges, 5, dist_matrix)
+pos = nx.get_node_attributes(structural_epistasis_graph, 'pos')
+
+plt.figure()
+nx.draw(structural_epistasis_graph, pos, with_labels=True, font_weight='bold')
 
 # Find largest cliques in largest component of graph
 largest_cc = max(nx.connected_components(higher_order_mut_epistasis_graph), key=len)
 higher_order_mut_epistasis_subgraph = higher_order_mut_epistasis_graph.subgraph(largest_cc)
-nx.draw(higher_order_mut_epistasis_subgraph, with_labels=True, font_weight='bold')
+#nx.draw(higher_order_mut_epistasis_subgraph, with_labels=True, font_weight='bold')
 largest_cliques = sorted(nx.find_cliques(higher_order_mut_epistasis_subgraph), key=len, reverse=True)
 print(largest_cliques)
+
+# Node degree for each position
+mut_2_5_node_degree_list = np.array(list(map(list, sorted(higher_order_mut_epistasis_graph.degree, key=lambda x: x[1], reverse=True))),
+                                dtype=int)
+fields = ["Amino Acid Position", "Node Degree"]
+rows = mut_2_5_node_degree_list.tolist()
+
+with open('mut_2_5_cut_1_-1.csv', 'w') as mut_2_5_cut_1_1:
+    # using csv.writer method from CSV package
+    write = csv.writer(mut_2_5_cut_1_1)
+
+    write.writerow(fields)
+    write.writerows(rows)
 
 # Node degree analysis (node, degree) in descending order
 plot_node_degree_distribution(higher_order_mut_epistasis_graph)
@@ -142,7 +170,7 @@ epistatic_score_list = preprocessed_data["2 Mutation"]["Epistatic score"]
 
 # Create a list of positive and combinable positions of double mutations
 pos_comb_double_mut_list_full = double_mut_pos(epistatic_score_list, W_observed_list, W_expected_std_list,
-                                               W_observed_std_list, sequence_double_list, reference, 0.5, -1)
+                                               W_observed_std_list, sequence_double_list, reference, 1, -1)
 pos_comb_double_mut_list = pos_comb_double_mut_list_full[:, :2].astype(int)
 
 # Determine all epistatic triangles for all AA positions
@@ -156,8 +184,21 @@ double_mut_epistasis_graph = epistasis_graph(pos_comb_double_mut_list)
 nx.draw(double_mut_epistasis_graph, with_labels=True, font_weight='bold')
 plt.show()
 
+# Node degree for each position
+mut_2_node_degree_list = np.array(list(map(list, sorted(double_mut_epistasis_graph.degree, key=lambda x: x[1], reverse=True))),
+                                dtype=int)
+fields = ["Amino Acid Position", "Node Degree"]
+rows = mut_2_node_degree_list.tolist()
+
+with open('mut_2_cut_1_-1.csv', 'w') as mut_2_cut_1_1:
+    # using csv.writer method from CSV package
+    write = csv.writer(mut_2_cut_1_1)
+
+    write.writerow(fields)
+    write.writerows(rows)
+
 # Node degree analysis (node, degree) in descending order
-plot_node_degree_distribution(double_mut_epistasis_graph)
+#plot_node_degree_distribution(double_mut_epistasis_graph)
 
 # Node degree + amino acid distribution
 pos_comb_double_mut_pos = np.concatenate(
@@ -168,10 +209,3 @@ pos_comb_double_mut_pos_aa = np.stack((pos_comb_double_mut_pos, pos_comb_double_
 
 pos_per_aa_dict = plot_node_degree_aa_distribution(pos_comb_double_mut_pos_aa)
 
-# Plot adjacency matrix
-double_mut_epistasis_graph_A = nx.adjacency_matrix(double_mut_epistasis_graph).todense()
-plt.imshow(double_mut_epistasis_graph_A)
-plt.show()
-
-# Fitness Heatmap
-plot_obs_fitness_heatmap(reference, sequence_double_list, W_observed_list)
