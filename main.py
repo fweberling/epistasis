@@ -1,6 +1,4 @@
 import csv
-
-import gpytorch.likelihoods
 import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -11,8 +9,6 @@ from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distributi
 import numpy as np
 import itertools
 import scipy as sp
-from sklearn.decomposition import PCA
-import torch
 
 # Upload input files into panda data frame
 # data_frame = pd.read_csv('CPA_merge_filtered.csv')
