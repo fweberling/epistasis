@@ -11,13 +11,14 @@ import itertools
 import scipy as sp
 
 # Upload input files into panda data frame
-# data_frame = pd.read_csv('CPA_merge_filtered.csv')
-data_frame = pd.read_csv('221111_CPA_merge_filtered.csv')
+data_frame = pd.read_csv('MePy_merge_filtered_260923.csv')
+
 # Specify sequence of reference protein
 reference = "MRDTDVTVLGLGLMGQALAGAFLKDGHATTVWNRSEGKAGQLAEQGAVLASSARDAAEASPLVVVCVSDHAAVRAVLDPLGDVLAGRVLVNLTSGTSEQARATAEWAAERGITYLDGAIMAIPQVVGTADAFLLYSGPEAAYEAHEPTLRSLGAGTTYLGADHGLSSLYDVALLGIMWGTLNSFLHGAALLGTAKVEATTFAPFANRWIEAVTGFVSAYAGQVDQGAYPALDATIDTHVATVDHLIHESEAAGVNTELPRLVRTLADRALAGGQGGLGYAAMIEQFRSPS*"
 
 # Specify maximum order of mutations to be analysed i.e. mutations up to that order will be analysed
 num_mut = 5
+
 # Preprocess the data
 preprocessed_data = preprocessing(data_frame, num_mut, reference)
 
@@ -120,6 +121,7 @@ pos = nx.get_node_attributes(structural_epistasis_graph, 'pos')
 
 plt.figure()
 nx.draw(structural_epistasis_graph, pos, with_labels=True, font_weight='bold')
+plt.show()
 
 # Find largest cliques in largest component of graph
 largest_cc = max(nx.connected_components(higher_order_mut_epistasis_graph), key=len)

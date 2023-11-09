@@ -474,9 +474,18 @@ def construct_structural_epistasis_graph(double_mutant_edges, filter_threshold, 
         if np.any(filtered_values == edge_cand[0]) or np.any(filtered_values == edge_cand[1]):
             filtered_pos_comb_mut_edges.append(edge_cand.tolist())
 
-    # Extract unique nodes
+    # Convert to numpy array
     filtered_pos_comb_mut_edges = np.array(filtered_pos_comb_mut_edges)
 
+    # Exclude stop codon
+    if 291 in filtered_pos_comb_mut_edges:
+        filtered_pos_comb_mut_edges_xstop = []
+        for i in range(0, len(filtered_pos_comb_mut_edges)):
+            if filtered_pos_comb_mut_edges[i, 0] != 291 and filtered_pos_comb_mut_edges[i, 1] != 291:
+                filtered_pos_comb_mut_edges_xstop.append(filtered_pos_comb_mut_edges[i].tolist())
+        filtered_pos_comb_mut_edges = filtered_pos_comb_mut_edges_xstop
+
+    # Extract unique nodes
     unique_filtered_nodes = np.unique(filtered_pos_comb_mut_edges)
 
     # PCA
