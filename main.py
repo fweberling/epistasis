@@ -3,7 +3,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
 from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, \
-    call_aa_simple, _init_pca, bGPLVM, construct_structural_epistasis_graph
+    call_aa_simple, construct_structural_epistasis_graph
 from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution, \
     plot_mutation_distribution, plot_epistasis_model
 import numpy as np
@@ -146,7 +146,8 @@ with open('mut_2_5_cut_1_-1.csv', 'w') as mut_2_5_cut_1_1:
 # Node degree analysis (node, degree) in descending order
 plot_node_degree_distribution(higher_order_mut_epistasis_graph)
 
-plot_node_degree_distribution(higher_order_mut_epistasis_graph, frequency=True, sequence_list=full_mut_sequence_list, reference=reference)
+plot_node_degree_distribution(higher_order_mut_epistasis_graph, frequency=True, sequences=full_mut_sequence_list,
+                              reference=reference)
 # Node degree and amino acid distribution
 pos_comb_higher_mut_pos = np.concatenate(
     (np.array(pos_comb_mut_edges)[:, 0], np.array(pos_comb_mut_edges)[:, 1].astype(int)), axis=0)

@@ -1,31 +1,29 @@
 # Plotting functions for project
 import itertools
-import random
-
 import numpy as np
 import networkx as nx
 from matplotlib import pyplot as plt
 from analysis_utils import call_aa_simple
 
 
-def plot_obs_fitness_heatmap(reference_seq, double_mut_seq_list, obs_fitness_list):
+def plot_obs_fitness_heatmap(reference_seq, double_mut_seqs: list, obs_fitness_scores: list):
     """
     Plots a heatmap of observed fitness on a len(reference_seq) x len(reference_seq) grid
 
     :param reference_seq: string of amino acids of reference protein sequence
-    :param double_mut_seq_list: list of sequences of mutants with double mutations
-    :param obs_fitness_list: list of observed fitness scores
+    :param double_mut_seqs: list of sequences of mutants with double mutations
+    :param obs_fitness_scores: list of observed fitness scores
     :return: None
     """
     obs_fitness_heatmap = np.ones((len(reference_seq), len(reference_seq))) * -6
 
     obs_fitness_pos_score_list = []
 
-    for double_mut in range(len(double_mut_seq_list)):
+    for double_mut in range(len(double_mut_seqs)):
         obs_fitness_pos_score_list_element = []
-        sequence = double_mut_seq_list[double_mut]
+        sequence = double_mut_seqs[double_mut]
         _, pos, _ = call_aa_simple(reference_seq, sequence)
-        obs_fitness = obs_fitness_list[double_mut]
+        obs_fitness = obs_fitness_scores[double_mut]
 
         # Append list element with double mutation positions and corresponding epistatic score / observed fitness
         obs_fitness_pos_score_list_element.append(pos)
@@ -48,13 +46,13 @@ def plot_obs_fitness_heatmap(reference_seq, double_mut_seq_list, obs_fitness_lis
     plt.show()
 
 
-def plot_node_degree_distribution(epistasis_graph, frequency=False, sequence_list=[], reference=[]):
+def plot_node_degree_distribution(epistasis_graph: nx.Graph, frequency: bool = False, sequences: list = [], reference=[]):
     """
     Given an epistasis graph, plot the node degree distribution (# epistatic interaction per amino acid position) for
     each node (amino acid position)
 
     :param reference: string of amino acids of the reference sequence
-    :param sequence_list: list of mutant sequences
+    :param sequences: list of mutant sequences
     :param frequency: Node degree distribution by frequency instead of counts
     :param epistasis_graph: Networkx graph
     :return: None
@@ -68,8 +66,8 @@ def plot_node_degree_distribution(epistasis_graph, frequency=False, sequence_lis
         full_mut_aa_list = []
 
         # Create lists of double mutation positions dependent on positiveness and combinability
-        for seq in range(len(sequence_list)):
-            sequence = sequence_list[seq]
+        for seq in range(len(sequences)):
+            sequence = sequences[seq]
             _, mut_pos, mut_aa = call_aa_simple(reference, sequence)
 
             full_mut_pos_list.append(mut_pos)
@@ -83,8 +81,6 @@ def plot_node_degree_distribution(epistasis_graph, frequency=False, sequence_lis
             for pos in range(0, len(unique_dist_pos)):
                 if unique_dist_pos[pos] == node_degree_list[pos_node_idx, 0]:
                     node_degree_list[pos_node_idx, 1] = node_degree_list[pos_node_idx, 1] / unique_dist_count[pos]
-
-
 
     # Plot node degree list as bar chart
     plt.figure(figsize=[15, 3])
@@ -101,19 +97,19 @@ def plot_node_degree_distribution(epistasis_graph, frequency=False, sequence_lis
     plt.show()
 
 
-def plot_node_degree_aa_distribution(mut_aa_list):
+def plot_node_degree_aa_distribution(mut_aa: np.ndarray) -> dict:
     """
     Given a n x 2 dimensional numpy array of mutated amino acids, plot the node degree and amino acid distribution as
     bar chart and return a dictionary of amino acids per positions
 
-    :param mut_aa_list:
+    :param mut_aa:
     :return: pos_per_aa_dict
     """
     # Return the unique rows
-    unique_pos, unique_pos_counts = np.unique(mut_aa_list, return_counts=True, axis=0)
+    unique_pos, unique_pos_counts = np.unique(mut_aa, return_counts=True, axis=0)
 
     # check for present AA in all data
-    unique_aa = np.unique(mut_aa_list[:, 1]).tolist()
+    unique_aa = np.unique(mut_aa[:, 1]).tolist()
 
     # Create dict for each AA, for each dict the counts
     pos_per_aa_dict = dict.fromkeys(unique_aa)
@@ -152,11 +148,11 @@ def plot_node_degree_aa_distribution(mut_aa_list):
     return pos_per_aa_dict
 
 
-def plot_mutation_distribution(sequence_list, reference):
+def plot_mutation_distribution(sequences: list, reference: str):
     """
     Takes the full list of all mutants and plots the mutation distribution (number of mutations per position)
 
-    :param sequence_list: list of all strings of mutants
+    :param sequences: list of all strings of mutants
     :param reference: string of amino acids of the reference protein
     :return: None
     """
@@ -164,8 +160,8 @@ def plot_mutation_distribution(sequence_list, reference):
     full_mut_aa_list = []
 
     # Create lists of double mutation positions dependent on positiveness and combinability
-    for seq in range(len(sequence_list)):
-        sequence = sequence_list[seq]
+    for seq in range(len(sequences)):
+        sequence = sequences[seq]
         _, mut_pos, mut_aa = call_aa_simple(reference, sequence)
 
         full_mut_pos_list.append(mut_pos)
@@ -192,13 +188,13 @@ def plot_mutation_distribution(sequence_list, reference):
 # ln_W_a_b_list -> W_observed_list
 # e -> epistatic_score_list
 
-def plot_epistasis_model(W_expected_list, W_observed_list, epistatic_score_list):
+def plot_epistasis_model(exp_fitness_scores: list, obs_fitness_scores: list, epistatic_scores: list):
     """
     Plots the epistasis model for all mutants as scatter plot
 
-    :param W_expected_list: list of expected fitness scores for each mutant
-    :param W_observed_list: list of observed fitness scores for each mutant
-    :param epistatic_score_list: list of epistatic scores for each mutant
+    :param exp_fitness_scores: list of expected fitness scores for each mutant
+    :param obs_fitness_scores: list of observed fitness scores for each mutant
+    :param epistatic_scores: list of epistatic scores for each mutant
     :return: None
     """
 
@@ -207,12 +203,12 @@ def plot_epistasis_model(W_expected_list, W_observed_list, epistatic_score_list)
     plt.axvline(0, c="grey", linewidth=1)
     # plt.plot([-1,1], [0.3, 0.3], c="grey", linewidth=1)
     # plt.plot([0,0], [0.3, 1], c="grey", linewidth=1)
-    plt.scatter(W_expected_list, W_observed_list, s=10, c=epistatic_score_list, cmap="coolwarm")
+    plt.scatter(exp_fitness_scores, obs_fitness_scores, s=10, c=epistatic_scores, cmap="coolwarm")
     plt.xlabel("Expected fitness scores")
     plt.ylabel("Observed fitness scores")
     # plt.ylim([-0.5,0.9])
     # plt.xlim([-0.95,0.55])
     plt.colorbar(ticks=np.arange(-2.5, 2.5, 0.2), label=u'\u03B5');
     plt.clim(-2.5, 2.5)
-    #plt.savefig("correlation_calculated_double_double_epsilon.pdf", bbox_inches='tight')
+    # plt.savefig("correlation_calculated_double_double_epsilon.pdf", bbox_inches='tight')
     plt.show()
