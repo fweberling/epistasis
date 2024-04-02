@@ -9,6 +9,16 @@ The used reference wildtype for the IRED that is also used in all scripts is:
 reference = "MRDTDVTVLGLGLMGQALAGAFLKDGHATTVWNRSEGKAGQLAEQGAVLASSARDAAEASPLVVVCVSDHAAVRAVLDPLGDVLAGRVLVNLTSGTSEQARATAEWAAERGITYLDGAIMAIPQVVGTADAFLLYSGPEAAYEAHEPTLRSLGAGTTYLGADHGLSSLYDVALLGIMWGTLNSFLHGAALLGTAKVEATTFAPFANRWIEAVTGFVSAYAGQVDQGAYPALDATIDTHVATVDHLIHESEAAGVNTELPRLVRTLADRALAGGQGGLGYAAMIEQFRSPS*"
 ```
 
+## Data
+
+The DMS data are stored in csv files. Different DMS data csv files are given in the repository:
+
+* `22111_CPA_merge_filtered.csv`
+* `22111_CPA_merge_filtered_3h_on.csv`
+* `MePy_merge_filtered_260923.csv`\
+
+The most recent and also default data file for all analyses is `MePy_merge_filtered_260923.csv`
+
 ## Installation
 
 ### Colab
@@ -23,8 +33,42 @@ After having opened the notebook in Colab, the python scripts `analysis_utils.py
 
 ### Terminal
 
-The code can also be run via terminal. For that, use `main.py`
+The analyses can also be run via terminal.
 
+#### Package requirements:
+Following package requirements are necessary
+
+* Python >= 3.9
+* pandas >= 1.5.1
+```commandline
+pip install pandas
+```
+* numpy >= 1.23.4
+```commandline
+pip install numpy
+```
+* scipy >= 1.9.3
+```commandline
+pip install scipy
+```
+* scikit-learn >= 1.1.3
+```commandline
+pip install -U scikit-learn
+```
+* networkx >= 2.8.7
+```commandline
+pip install networkx
+```
+* matplotlib >= 3.6.0
+```commandline
+pip install -U pip
+```
+#### Running core analyses
+The core analyses is given in `main.py` and can be run via following command
+
+```commandline
+python3 main.py
+```
 
 ## License 
 
