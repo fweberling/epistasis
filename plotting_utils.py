@@ -136,13 +136,12 @@ def plot_node_degree_aa_distribution(mut_aa: np.ndarray) -> dict:
         stored_value = stored_value + pos_per_aa_dict[sp_aa]
         idx = idx + 1
     plt.xlim(1, 291)
-    plt.legend(loc="lower right")
+    plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
     plt.locator_params(axis="x", nbins=29)
     plt.locator_params(axis="y", nbins=10)
     plt.title("Node Degree Distribution")
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Epistatic Interactions")
-    plt.legend()
     plt.show()
 
     return pos_per_aa_dict

@@ -1,9 +1,6 @@
 import numpy as np
 import networkx as nx
-import torch
-import gpytorch
 from sklearn.decomposition import PCA
-from matplotlib import pyplot as plt
 import pandas as pd
 from typing import Tuple, Literal
 
@@ -20,7 +17,7 @@ def call_aa_simple(reference_seq: str, target_seq: str) -> Tuple[list, list, lis
     """
     # Check for indels
     if len(reference_seq) != len(str(target_seq)):
-        print("Indel detected")
+        #print("Indel detected")
         return "indel", "indel", "indel"
 
     # call mutations in 3 lists if only substitutions -> dataframe would be better
@@ -536,6 +533,6 @@ def epistatic_triangles(higher_order_mut_positions: list) -> list:
                 epistatic_triangle_list.append(sorted(epistatic_triangle))
 
     # List of epistatic triangles
-    epistatic_triangle_list = np.unique(np.array(epistatic_triangle_list), axis=0).tolist()
+    epistatic_triangle_list = np.unique(np.array(epistatic_triangle_list), axis=0).astype(int).tolist()
 
     return epistatic_triangle_list

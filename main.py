@@ -2,9 +2,8 @@ import csv
 import pandas as pd
 from matplotlib import pyplot as plt
 import networkx as nx
-from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, \
-    call_aa_simple, construct_structural_epistasis_graph
-from plotting_utils import plot_obs_fitness_heatmap, plot_node_degree_distribution, plot_node_degree_aa_distribution, \
+from analysis_utils import preprocessing, double_mut_pos, epistasis_graph, epistatic_triangles, comb_pos_mut, construct_structural_epistasis_graph
+from plotting_utils import plot_node_degree_distribution, plot_node_degree_aa_distribution, \
     plot_mutation_distribution, plot_epistasis_model
 import numpy as np
 import itertools
