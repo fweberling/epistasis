@@ -15,7 +15,6 @@ The DMS data are stored in csv files. The IRED DMS data csv files are used in th
 
 * `srired_active_data.csv`
 
-The most recent and also default data file for all analyses is `MePy_merge_filtered_260923.csv`
 
 ## Installation
 
@@ -62,7 +61,7 @@ pip install networkx
 pip install -U pip
 ```
 #### Running core analyses
-The core analyses is given in `main.py` and can be run via following command
+The core analyses is given in `epistasis_analysis.py` and can be run via following command
 
 ```commandline
 python3 epistasis_analysis.py
