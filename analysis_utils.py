@@ -85,7 +85,7 @@ def preprocessing(data_frame: pd.DataFrame, num_mut: int, reference_seq: str) ->
 
     for num_mut_analysed in range(1, num_mut + 1):
         num_variants_analysed = len(preprocessed_data[str(num_mut_analysed) + " Mutation"]["Fitness"])
-        print(f"number of variants with {num_mut_analysed} analyzed: {num_variants_analysed}")
+        print(f"number of variants with mutations of order {num_mut_analysed} analyzed: {num_variants_analysed}")
 
     for higher_ord_mut in range(2, num_mut + 1):
 
@@ -451,13 +451,14 @@ def epistasis_graph(double_mut_positions: list) -> nx.Graph:
 
 
 def construct_structural_epistasis_graph(double_mutant_edges: list, filter_threshold: int,
-                                         distance_matrix: np.ndarray) -> nx.Graph:
+                                         distance_matrix: np.ndarray, zero_edge_nodes: bool = True) -> nx.Graph:
     """
     Given interaction edges and a distance matrix, construct a structural epistasis graph
 
     :param double_mutant_edges: list of interactions
     :param filter_threshold: integer, nodes above this threshold are incoporated in the graph
     :param distance_matrix: numpy array of min dimer distance matrix
+    :param zero_edge_nodes: boolean variable, indicates if nodes without edges should be included
     :return: structural_epistasis_graph: networkX graph
     """
     # Filter elements
@@ -498,8 +499,11 @@ def construct_structural_epistasis_graph(double_mutant_edges: list, filter_thres
 
     structural_epistasis_graph = nx.Graph()
     for node in range(1, 291):
-        if np.any(unique_filtered_nodes == node):
+        if zero_edge_nodes:
             structural_epistasis_graph.add_node(node, pos=(Y_red[node - 1, 0], Y_red[node - 1, 1]))
+        else:
+            if np.any(unique_filtered_nodes == node):
+              structural_epistasis_graph.add_node(node, pos=(Y_red[node - 1, 0], Y_red[node - 1, 1]))
 
     edges_list = []
     for pair in filtered_pos_comb_mut_edges:

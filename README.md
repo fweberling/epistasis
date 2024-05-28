@@ -11,11 +11,9 @@ reference = "MRDTDVTVLGLGLMGQALAGAFLKDGHATTVWNRSEGKAGQLAEQGAVLASSARDAAEASPLVVVCV
 
 ## Data
 
-The DMS data are stored in csv files. Different DMS data csv files are given in the repository:
+The DMS data are stored in csv files. The IRED DMS data csv files are used in this repository is:
 
-* `22111_CPA_merge_filtered.csv`
-* `22111_CPA_merge_filtered_3h_on.csv`
-* `MePy_merge_filtered_260923.csv`\
+* `srired_active_data.csv`
 
 The most recent and also default data file for all analyses is `MePy_merge_filtered_260923.csv`
 
@@ -27,7 +25,7 @@ The easiest way to run the scripts is via Google Colab. The Jupyter notebook Epi
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fweberling/epistasis/blob/main/Epistasis_analysis.ipynb)
 
-After having opened the notebook in Colab, the python scripts `analysis_utils.py` and `plotting_utils.py` need to be uploaded. These scripts contain the core functions for the analyses and plots to be carried out. Also, the csv file `MePy_merge_filtered_260923.csv` containing the DMS data along side the distance matrix npy file `min_dimer_distances.npy` must be uploaded as shown by the following screenshot:
+After having opened the notebook in Colab, the python scripts `analysis_utils.py` and `plotting_utils.py` need to be uploaded. These scripts contain the core functions for the analyses and plots to be carried out. Also, the csv file `srired_active_data.csv` containing the DMS data as well as the distance matrix npy file `min_dimer_distances.npy` must be uploaded as shown by the following screenshot:
 
 ![](uploading.png)
 
@@ -67,7 +65,7 @@ pip install -U pip
 The core analyses is given in `main.py` and can be run via following command
 
 ```commandline
-python3 main.py
+python3 epistasis_analysis.py
 ```
 
 ## License 
