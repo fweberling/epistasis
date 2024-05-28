@@ -21,7 +21,7 @@ The most recent and also default data file for all analyses is `MePy_merge_filte
 
 ### Colab
 
-The easiest way to run the scripts is via Google Colab. The Jupyter notebook Epistasis_analysis.ipynb can directly be opened on Colab by pressing the following Open in Colab button:
+The easiest way to run the scripts is via Google Colab. The Jupyter notebook `Epistasis_analysis.ipynb` can directly be opened on Colab by pressing the following Open in Colab button:
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/fweberling/epistasis/blob/main/Epistasis_analysis.ipynb)
 
