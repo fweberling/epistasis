@@ -98,6 +98,8 @@ def preprocessing(data_frame: pd.DataFrame, num_mut: int, reference_seq: str) ->
         epistatic_score_list = []
         W_expected_list_non_log = []
         W_observed_list_non_log = []
+        positions_found_list = []
+        mutated_aa_found_list = []
 
         # for counting epistatic hotspots
         positive_positions = []
@@ -137,6 +139,8 @@ def preprocessing(data_frame: pd.DataFrame, num_mut: int, reference_seq: str) ->
 
             # only if all positions found: proceed
             if num_found == len(positions):
+                positions_found_list.append(positions)
+                mutated_aa_found_list.append(mut_aas)
                 number_possible_epistatic_events += 1
                 single_observed_std_list.append(
                     W_observed_std)  # Contains now full observed single and double mutations stdv
@@ -179,13 +183,21 @@ def preprocessing(data_frame: pd.DataFrame, num_mut: int, reference_seq: str) ->
         preprocessed_data[str(higher_ord_mut) + " Mutation"]["Expected fitness"] = W_expected_list
         preprocessed_data[str(higher_ord_mut) + " Mutation"]["Expected std of fitness"] = W_expected_std_list
         preprocessed_data[str(higher_ord_mut) + " Mutation"]["Epistatic score"] = epistatic_score_list
-
+        preprocessed_data[str(higher_ord_mut) + " Mutation"]["Positions of found mutants"] = positions_found_list # where data are available
+        preprocessed_data[str(higher_ord_mut) + " Mutation"]["Mutated AA of found mutants"] = mutated_aa_found_list # where data are available
     return preprocessed_data
 
 
-def comb_pos_mut(epistatic_scores: list, obs_fitness_scores: list, exp_fitness_stdvs: list, obs_fitness_stdvs: list,
-                 mut_seqs: list,
-                 reference_seq: str, sig_std_obs: int, sig_std_exp: int) -> Tuple[list, list]:
+def comb_pos_mut(
+        epistatic_scores: list,
+        obs_fitness_scores: list,
+        exp_fitness_stdvs: list,
+        obs_fitness_stdvs: list,
+        mut_seqs: list,
+        reference_seq: str,
+        sig_std_obs: int,
+        sig_std_exp: int
+) -> Tuple[list, list]:
     """
     Creates a list of at least double mutation positions based on positive epistatic effect and combinability (
     positive epistatic effect and additive single mutations)
@@ -222,8 +234,16 @@ def comb_pos_mut(epistatic_scores: list, obs_fitness_scores: list, exp_fitness_s
     return comb_pos_mut_pos_list, comb_pos_mut_aa_list
 
 
-def double_mut_pos(epistatic_scores: list, obs_fitness_scores: list, exp_fitness_stdvs: list, obs_fitness_stdvs: list,
-                   double_mut_seqs: list, reference_seq: str, sig_std_obs: int, sig_std_exp: int) -> list:
+def double_mut_pos(
+        epistatic_scores: list,
+        obs_fitness_scores: list,
+        exp_fitness_stdvs: list,
+        obs_fitness_stdvs: list,
+        double_mut_seqs: list,
+        reference_seq: str,
+        sig_std_obs: int,
+        sig_std_exp: int
+) -> list:
     """
     Creates a list of double mutation positions based on a positive epistatic effect and combinability (positive
     epistatic effect and additive single mutations)
@@ -269,9 +289,15 @@ def double_mut_pos(epistatic_scores: list, obs_fitness_scores: list, exp_fitness
     return pos_comb_double_mut_list
 
 
-def double_mut_pos_eps(exp_fitness_scores: list, obs_fitness_scores: list, double_mut_seq: list, ref_seq: str,
-                       epistasis: Literal["positive", "negative", "none"], add_threshold: float,
-                       pos_threshold: float) -> list:
+def double_mut_pos_eps(
+        exp_fitness_scores: list,
+        obs_fitness_scores: list,
+        double_mut_seq: list,
+        ref_seq: str,
+        epistasis: Literal["positive", "negative", "none"],
+        add_threshold: float,
+        pos_threshold: float
+) -> list:
     """
     Analyses the list of sequences of double mutants for positive, negative, or no epistasis and returns a list of
     double mutation positions for each sequence
@@ -450,8 +476,12 @@ def epistasis_graph(double_mut_positions: list) -> nx.Graph:
     return graph
 
 
-def construct_structural_epistasis_graph(double_mutant_edges: list, filter_threshold: int,
-                                         distance_matrix: np.ndarray, zero_edge_nodes: bool = True) -> nx.Graph:
+def construct_structural_epistasis_graph(
+        double_mutant_edges: list,
+        filter_threshold: int,
+        distance_matrix: np.ndarray,
+        zero_edge_nodes: bool = True
+) -> nx.Graph:
     """
     Given interaction edges and a distance matrix, construct a structural epistasis graph
 

@@ -42,6 +42,15 @@ This is is the pre-processing of the IRED DMS data for the combinability and epi
 PATH = "srired_active_data.csv"
 data_frame = pd.read_csv(PATH)
 
+#filtered_df = data_frame[data_frame["indel"] == False]
+#filtered_df = filtered_df[filtered_df["STOP"] == False]
+#filtered_df = filtered_df[filtered_df["STOP_readthrough"] == False]
+
+plt.rcParams.update({
+    "text.usetex": True,
+    "font.family": "Latin Modern"
+})
+
 """For the pre-processing, the maximum order of mutations to be analysed (e.g. double, triple, quadruple etc.) must be defined\
 
 """
@@ -54,6 +63,72 @@ num_mut = 5
 # Preprocess the data
 preprocessed_data = preprocessing(data_frame, num_mut, reference)
 
+"""
+# NEW from here on
+# Extract variants
+
+sequences = []
+mutation_order = []
+mutation_positions = []
+mutated_amino_acids = []
+fitness_scores = []
+fitness_scores_stdv = []
+expected_fitness_scores = []
+expected_fitness_scores_stdv = []
+epistatic_scores = []
+
+
+for order in range(1, num_mut + 1):
+    if order == 1:
+        mut_seq = preprocessed_data[str(order) + " Mutation"]["Pre sequence list"]
+        mut_type = (np.zeros(len(mut_seq), dtype=int) + order).tolist()
+        mut_fit_exp = preprocessed_data[str(order) + " Mutation"]["Fitness"] # identical to observed for single mutants
+        mut_fit_exp_stdv = preprocessed_data[str(order) + " Mutation"]["Observed std of fitness"] # identical to observed for single mutants
+        mut_epistasis = (np.zeros(len(mut_seq), dtype=int)).tolist()
+        mut_fit = preprocessed_data[str(order) + " Mutation"]["Fitness"]
+        mut_fit_obs_stdv = preprocessed_data[str(order) + " Mutation"]["Observed std of fitness"]
+        mut_pos = preprocessed_data[str(order) + " Mutation"]["Positions"]
+        mut_AA = preprocessed_data[str(order) + " Mutation"]["Mutated AA"]
+    else:
+        mut_seq = preprocessed_data[str(order) + " Mutation"]["Sequence of mutants"]
+        mut_type = (np.zeros(len(mut_seq), dtype=int) + order).tolist()
+        mut_fit_exp = preprocessed_data[str(order) + " Mutation"]["Expected fitness"]
+        mut_fit_exp_stdv = preprocessed_data[str(order) + " Mutation"]["Expected std of fitness"]
+        mut_epistasis = preprocessed_data[str(order) + " Mutation"]["Epistatic score"]
+        mut_fit = preprocessed_data[str(order) + " Mutation"]["Observed fitness"]
+        mut_fit_obs_stdv = preprocessed_data[str(order) + " Mutation"]["Observed std of fitness"]
+        mut_pos = preprocessed_data[str(order) + " Mutation"]["Positions of found mutants"]
+        mut_AA = preprocessed_data[str(order) + " Mutation"]["Mutated AA of found mutants"]
+
+    # Append to lists
+    sequences.extend(mut_seq)
+    mutation_order.extend(mut_type)
+    mutation_positions.extend(mut_pos)
+    mutated_amino_acids.extend(mut_AA)
+    fitness_scores.extend(mut_fit)
+    fitness_scores_stdv.extend(mut_fit_obs_stdv)
+    expected_fitness_scores.extend(mut_fit_exp)
+    expected_fitness_scores_stdv.extend(mut_fit_exp_stdv)
+    epistatic_scores.extend(mut_epistasis)
+
+processed_data = {
+    "Sequences": sequences,
+    "Order of mutation": mutation_order,
+    "Position of mutations": mutation_positions,
+    "Mutated amino acids": mutated_amino_acids,
+    "Fitness": fitness_scores,
+    "Stdv of fitness": fitness_scores_stdv,
+    "Expected fitness": expected_fitness_scores,
+    "Stdv of expected fitness": expected_fitness_scores_stdv,
+    "Epistatic score": epistatic_scores
+}
+
+processed_data_df = pd.DataFrame(processed_data)
+processed_data_df.to_csv("srired_processed_data.csv")
+
+np.save("IRED.npy", np.array(sequences))
+"""
+#AS USUAL FROM HERE on
 # Lists of sequences, observed and expected fitness scores, and epistatic scores for each mutation order (e.g. 2,3,4,5)
 for i in range(2, num_mut + 1):
     locals()["mut_" + str(i) + "_sequence_list"] = preprocessed_data[str(i) + " Mutation"]["Sequence of mutants"]
@@ -88,12 +163,12 @@ for mut_num_i in range(2, num_mut + 1):
 
 The epistasis model is created for the order of mutations that has been selected. Here, the model is plotted for mutations of order 2 to 5. The pearson correlation coefficient is printed as well.
 """
-
+"""
 # Plot epistasis model for mutations 2 - 5
 r_d_s, p_d_s = sp.stats.pearsonr(full_mut_W_expected_list, full_mut_W_observed_list)
 print(f"correlation calculated double mutations fitness / double mutation fitness: pearson r = {r_d_s} with p = {p_d_s}")
 plot_epistasis_model(full_mut_W_expected_list, full_mut_W_observed_list, full_mut_epistatic_score_list)
-
+"""
 """A Heatmap showing pairwise combinatorial fitness effects convoluted from data from variants with mutations of order 2 to 5. The $x$ and $y$ axis display the mutated amino acid positions."""
 
 # Fitness Heatmap

@@ -142,6 +142,7 @@ def plot_node_degree_aa_distribution(mut_aa: np.ndarray) -> dict:
     plt.title("Node Degree Distribution")
     plt.xlabel("Amino Acid Position")
     plt.ylabel("Number of Epistatic Interactions")
+    #plt.ylabel("Number of Combinable Interactions")
     plt.show()
 
     return pos_per_aa_dict
