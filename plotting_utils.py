@@ -97,14 +97,23 @@ def plot_node_degree_distribution(epistasis_graph: nx.Graph, frequency: bool = F
     plt.show()
 
 
-def plot_node_degree_aa_distribution(mut_aa: np.ndarray) -> dict:
+def plot_node_degree_aa_distribution(mut_aa: np.ndarray, protein_length: int, node_degree_type: str) -> dict:
     """
     Given a n x 2 dimensional numpy array of mutated amino acids, plot the node degree and amino acid distribution as
     bar chart and return a dictionary of amino acids per positions
 
     :param mut_aa:
+    :param protein_length:
+    :param node_degree_type:
     :return: pos_per_aa_dict
     """
+    if node_degree_type=="Epistasis":
+        ylabel_title = "Number of Epistatic Interactions"
+    elif node_degree_type=="Combinability":
+        ylabel_title = "Number of Combinable Interactions"
+    else:
+        raise TypeError("Only 'Combinability' or 'Epistasis' is implemented")
+
     # Return the unique rows
     unique_pos, unique_pos_counts = np.unique(mut_aa, return_counts=True, axis=0)
 
@@ -117,32 +126,31 @@ def plot_node_degree_aa_distribution(mut_aa: np.ndarray) -> dict:
     # Fill each entry with a 291 long list containing the positional counts
 
     for sel_aa in unique_aa:
-        aa_count_list = np.zeros(292)
+        aa_count_list = np.zeros(protein_length + 1)
         for pos in range(0, len(unique_pos)):
             if unique_pos[pos, 1] == sel_aa:
                 aa_count_list[unique_pos[pos, 0].astype(int)] = unique_pos_counts[pos]
         pos_per_aa_dict[sel_aa] = aa_count_list
 
-    x = np.arange(0, 292)
+    x = np.arange(0, protein_length + 1)
     plt.figure(figsize=[15, 3])
-    stored_value = np.zeros(292)
+    stored_value = np.zeros(protein_length + 1)
     idx = 0
     cmap = plt.get_cmap('nipy_spectral')
     slicedCM = cmap(np.linspace(0, 1, len(unique_aa)))
-    for a in range(10, 290, 10):
+    for a in range(10, protein_length, 10): # for SrIred 290 protein length -1
         plt.axvline(x=a, color="k", alpha=0.6, linewidth=0.3)
     for sp_aa in unique_aa:
         plt.bar(x, pos_per_aa_dict[sp_aa], bottom=stored_value, color=slicedCM[idx], label=unique_aa[idx])
         stored_value = stored_value + pos_per_aa_dict[sp_aa]
         idx = idx + 1
-    plt.xlim(1, 291)
+    plt.xlim(1, protein_length)
     plt.legend(loc="center left", bbox_to_anchor=(1, 0.5))
     plt.locator_params(axis="x", nbins=29)
     plt.locator_params(axis="y", nbins=10)
     plt.title("Node Degree Distribution")
     plt.xlabel("Amino Acid Position")
-    plt.ylabel("Number of Epistatic Interactions")
-    #plt.ylabel("Number of Combinable Interactions")
+    plt.ylabel(ylabel_title)
     plt.show()
 
     return pos_per_aa_dict
